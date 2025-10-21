@@ -238,21 +238,37 @@ document.addEventListener("DOMContentLoaded", () => {
         // If clicking on a merged box part, select the whole merged box
         const mergedId = gridState[row][col].id;
         const mergedArea = mergedAreas.find((area) => area.id === mergedId);
-  
-        // Clear previous selection
-        selectedBoxes.forEach(([r, c]) => {
-          gridState[r][c].element.classList.remove("selected");
-        });
-        selectedBoxes = [];
-  
-        // Select all boxes within the merged area
-        for (let r = mergedArea.startRow; r <= mergedArea.endRow; r++) {
-          for (let c = mergedArea.startCol; c <= mergedArea.endCol; c++) {
-            gridState[r][c].element.classList.add("selected");
-            selectedBoxes.push([r, c]);
+
+        // Check if this merged area is already selected
+        const isAlreadySelected = selectedBoxes.length > 0 && 
+          selectedBoxes.every(([r, c]) => 
+            r >= mergedArea.startRow && r <= mergedArea.endRow &&
+            c >= mergedArea.startCol && c <= mergedArea.endCol
+          ) &&
+          selectedBoxes.length === (mergedArea.endRow - mergedArea.startRow + 1) * (mergedArea.endCol - mergedArea.startCol + 1);
+
+        if (isAlreadySelected) {
+          // Deselect the merged area
+          selectedBoxes.forEach(([r, c]) => {
+            gridState[r][c].element.classList.remove("selected");
+          });
+          selectedBoxes = [];
+        } else {
+          // Clear previous selection
+          selectedBoxes.forEach(([r, c]) => {
+            gridState[r][c].element.classList.remove("selected");
+          });
+          selectedBoxes = [];
+
+          // Select all boxes within the merged area
+          for (let r = mergedArea.startRow; r <= mergedArea.endRow; r++) {
+            for (let c = mergedArea.startCol; c <= mergedArea.endCol; c++) {
+              gridState[r][c].element.classList.add("selected");
+              selectedBoxes.push([r, c]);
+            }
           }
         }
-        return; // Stop here, merged boxes are now selected
+        return; // Stop here, merged boxes are now selected or deselected
       }
   
       if (clickedBox.classList.contains("selected")) {

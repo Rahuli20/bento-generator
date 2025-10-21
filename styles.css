@@ -180,11 +180,15 @@ body {
     align-items: center;
     position: relative; /* For selection overlay */
   }
+
+  .bento-box:hover {
+    background-color: #b8d800;
+  }
   
   .bento-box.selected {
+    background-color: #b8d800;
     outline: 1px solid var(--box-selected-outline);
     outline-offset: -1px; /* Keep outline inside the box */
-
   }
   
   .bento-box.merged-source {
