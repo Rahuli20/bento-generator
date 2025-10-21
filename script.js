@@ -29,8 +29,8 @@ document.addEventListener("DOMContentLoaded", () => {
       
       if (shortestSide < 250) return 1;
       if (shortestSide >= 250 && shortestSide < 500) return 2;
-      if (shortestSide >= 500 && shortestSide < 750) return 4;
-      return 8; // >= 750px
+      if (shortestSide >= 500 && shortestSide < 750) return 3;
+      return 4; // >= 750px
     }
   
     // Function to update visual properties without resetting grid state
