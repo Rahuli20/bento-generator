@@ -84,6 +84,7 @@ body {
     border: 1px solid var(--border-medium);
     background-color: var(--bg-white);
     box-shadow: 0 4px 8px var(--shadow-medium);
+    position: relative; /* For safe area overlays */
   }
   
   .bento-grid {

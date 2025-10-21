@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
     const removeGapCheckbox = document.getElementById("removeGap");
     const addStrokeCheckbox = document.getElementById("addStroke");
+    const addSafeAreaCheckbox = document.getElementById("addSafeArea");
     let selectedBoxes = []; // Stores the [row, col] of selected boxes
     let mergedAreas = []; // Stores merged areas as { startRow, startCol, endRow, endCol }
 
@@ -64,7 +65,59 @@ document.addEventListener("DOMContentLoaded", () => {
             box.style.border = 'none';
           }
         });
+
+        // Update safe area overlays
+        updateSafeAreaOverlays();
       }
+    }
+
+    // Function to update safe area overlays in the preview
+    function updateSafeAreaOverlays() {
+      // Remove existing safe area overlays
+      const existingOverlays = bentoGridContainer.querySelectorAll('.safe-area-overlay');
+      existingOverlays.forEach(overlay => overlay.remove());
+
+      if (!addSafeAreaCheckbox.checked) {
+        return;
+      }
+
+      const existingGrid = bentoGridContainer.querySelector('.bento-grid');
+      if (!existingGrid) return;
+
+      const boxes = existingGrid.querySelectorAll('.bento-box');
+      const safeAreaInset = 20; // Fixed 80px inset
+
+      boxes.forEach(box => {
+        const rect = box.getBoundingClientRect();
+        const gridRect = existingGrid.getBoundingClientRect();
+        
+        // Calculate position relative to the grid container
+        const x = rect.left - gridRect.left;
+        const y = rect.top - gridRect.top;
+        const width = rect.width;
+        const height = rect.height;
+
+        // Calculate safe area dimensions with fixed inset
+        const safeWidth = Math.max(0, width - (safeAreaInset * 2));
+        const safeHeight = Math.max(0, height - (safeAreaInset * 2));
+        
+        // Only show safe area if it's large enough
+        if (safeWidth > 0 && safeHeight > 0) {
+          const safeAreaOverlay = document.createElement('div');
+          safeAreaOverlay.classList.add('safe-area-overlay');
+          safeAreaOverlay.style.position = 'absolute';
+          safeAreaOverlay.style.left = `${x + safeAreaInset}px`;
+          safeAreaOverlay.style.top = `${y + safeAreaInset}px`;
+          safeAreaOverlay.style.width = `${safeWidth}px`;
+          safeAreaOverlay.style.height = `${safeHeight}px`;
+          safeAreaOverlay.style.border = '1px solid black';
+          safeAreaOverlay.style.backgroundColor = 'transparent';
+          safeAreaOverlay.style.pointerEvents = 'none';
+          safeAreaOverlay.style.zIndex = '10';
+          
+          bentoGridContainer.appendChild(safeAreaOverlay);
+        }
+      });
     }
 
     // Function to create or update the grid
@@ -138,6 +191,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
       bentoGridContainer.appendChild(grid);
+      
+      // Update safe area overlays after grid creation
+      updateSafeAreaOverlays();
     }
   
     function handleBoxClick(row, col, gridState) {
@@ -364,6 +420,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
       selectedBoxes = []; // Clear selection after merge
+      
+      // Update safe area overlays after merge
+      updateSafeAreaOverlays();
     }
   
     function resetGrid() {
@@ -437,6 +496,58 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
   
+      // Add safe area overlay if enabled
+      if (addSafeAreaCheckbox.checked) {
+        svgContent += `<g id="safe-area-overlay">`;
+        
+        const safeAreaInset = 20; // Fixed 80px inset
+        
+        // Add safe areas for merged boxes
+        for (const area of mergedAreas) {
+          const mergedBoxWidth = area.endCol - area.startCol + 1;
+          const mergedBoxHeight = area.endRow - area.startRow + 1;
+  
+          const x = area.startCol * (baseBoxWidth + gap) + offsetX;
+          const y = area.startRow * (baseBoxHeight + gap) + offsetY;
+          const width = mergedBoxWidth * baseBoxWidth + (mergedBoxWidth - 1) * gap;
+          const height = mergedBoxHeight * baseBoxHeight + (mergedBoxHeight - 1) * gap;
+          
+          // Calculate safe area with fixed inset
+          const safeX = x + safeAreaInset;
+          const safeY = y + safeAreaInset;
+          const safeWidth = Math.max(0, width - (safeAreaInset * 2));
+          const safeHeight = Math.max(0, height - (safeAreaInset * 2));
+          
+          // Only add safe area if it's large enough
+          if (safeWidth > 0 && safeHeight > 0) {
+            svgContent += `<rect x="${safeX}" y="${safeY}" width="${safeWidth}" height="${safeHeight}" fill="none" stroke="black" stroke-width="1"/>`;
+          }
+        }
+        
+        // Add safe areas for individual unmerged boxes
+        for (let r = 0; r < numRows; r++) {
+          for (let c = 0; c < numCols; c++) {
+            if (!occupiedCells[r][c]) {
+              const x = c * (baseBoxWidth + gap) + offsetX;
+              const y = r * (baseBoxHeight + gap) + offsetY;
+              
+              // Calculate safe area with fixed inset
+              const safeX = x + safeAreaInset;
+              const safeY = y + safeAreaInset;
+              const safeWidth = Math.max(0, baseBoxWidth - (safeAreaInset * 2));
+              const safeHeight = Math.max(0, baseBoxHeight - (safeAreaInset * 2));
+              
+              // Only add safe area if it's large enough
+              if (safeWidth > 0 && safeHeight > 0) {
+                svgContent += `<rect x="${safeX}" y="${safeY}" width="${safeWidth}" height="${safeHeight}" fill="none" stroke="black" stroke-width="1"/>`;
+              }
+            }
+          }
+        }
+        
+        svgContent += `</g>`;
+      }
+  
       svgContent += `</svg>`;
   
       // Copy to clipboard
@@ -463,6 +574,7 @@ document.addEventListener("DOMContentLoaded", () => {
     columnsInput.addEventListener("change", updateGrid); // Rows/columns require full grid reset
     removeGapCheckbox.addEventListener("change", updateVisualProperties);
     addStrokeCheckbox.addEventListener("change", updateVisualProperties);
+    addSafeAreaCheckbox.addEventListener("change", updateVisualProperties);
     copySvgBtn.addEventListener("click", copySvg);
     resetGridBtn.addEventListener("click", resetGrid);
   
