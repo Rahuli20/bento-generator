@@ -37,18 +37,27 @@ document.addEventListener("DOMContentLoaded", () => {
       return 6; // >= 750px
     }
 
-    // Function to calculate scale factor to fit within 80vh/80vw
+    // Function to calculate scale factor to fit within 80vw/75vh
     function calculateResponsiveScale(gridHeight, gridWidth) {
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
       
-      // Calculate available space (80% of viewport)
+      // Calculate available space (80% width, 75% height to match CSS)
       const availableWidth = viewportWidth * 0.8;
-      const availableHeight = viewportHeight * 0.8;
+      const availableHeight = viewportHeight * 0.75;
       
       // Calculate scale factors for both dimensions (like object-fit: contain)
       const scaleX = availableWidth / gridWidth;
       const scaleY = availableHeight / gridHeight;
+      
+      // Debug logging
+      console.log('Scaling Debug:', {
+        viewport: { width: viewportWidth, height: viewportHeight },
+        available: { width: availableWidth, height: availableHeight },
+        grid: { width: gridWidth, height: gridHeight },
+        scales: { scaleX, scaleY },
+        finalScale: Math.min(scaleX, scaleY, 1)
+      });
       
       // Use the smaller scale factor to ensure the entire grid fits
       const scaleFactor = Math.min(scaleX, scaleY, 1); // Never scale up
@@ -73,9 +82,18 @@ document.addEventListener("DOMContentLoaded", () => {
       // Update the existing grid container
       const existingGrid = bentoGridContainer.querySelector('.bento-grid');
       if (existingGrid) {
+        const numRows = parseInt(rowsInput.value);
+        const numCols = parseInt(columnsInput.value);
+        
+        // Calculate exact cell dimensions
+        const cellWidth = (gridWidth - (numCols - 1) * gap) / numCols;
+        const cellHeight = (gridHeight - (numRows - 1) * gap) / numRows;
+        
         // Set the actual dimensions (for export)
         existingGrid.style.width = `${gridWidth}px`;
         existingGrid.style.height = `${gridHeight}px`;
+        existingGrid.style.gridTemplateRows = `repeat(${numRows}, ${cellHeight}px)`;
+        existingGrid.style.gridTemplateColumns = `repeat(${numCols}, ${cellWidth}px)`;
         existingGrid.style.gap = `${gap}px`;
 
         // Apply responsive scaling
@@ -236,11 +254,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const grid = document.createElement("div");
       grid.classList.add("bento-grid");
+      
+      // Calculate exact cell dimensions
+      const cellWidth = (gridWidth - (numCols - 1) * gap) / numCols;
+      const cellHeight = (gridHeight - (numRows - 1) * gap) / numRows;
+      
       // Set the actual dimensions (for export)
       grid.style.width = `${gridWidth}px`;
       grid.style.height = `${gridHeight}px`;
-      grid.style.gridTemplateRows = `repeat(${numRows}, 1fr)`;
-      grid.style.gridTemplateColumns = `repeat(${numCols}, 1fr)`;
+      grid.style.gridTemplateRows = `repeat(${numRows}, ${cellHeight}px)`;
+      grid.style.gridTemplateColumns = `repeat(${numCols}, ${cellWidth}px)`;
       grid.style.gap = `${gap}px`;
 
       // Apply responsive scaling
