@@ -85,6 +85,11 @@ body {
     background-color: var(--bg-white);
     box-shadow: 0 4px 8px var(--shadow-medium);
     position: relative; /* For safe area overlays */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-height: 80vh;
+    max-width: 80vw;
   }
   
   .bento-grid {

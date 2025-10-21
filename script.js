@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const bentoGridContainer = document.getElementById("bento-grid-container");
     const copySvgBtn = document.getElementById("copySvg");
     const resetGridBtn = document.getElementById("resetGrid");
+    
+    console.log("Reset button element:", resetGridBtn); // Debug log
   
     const removeGapCheckbox = document.getElementById("removeGap");
     const addStrokeCheckbox = document.getElementById("addStroke");
@@ -31,8 +33,27 @@ document.addEventListener("DOMContentLoaded", () => {
       
       if (shortestSide < 250) return 1;
       if (shortestSide >= 250 && shortestSide < 500) return 2;
-      if (shortestSide >= 500 && shortestSide < 750) return 2;
-      return 2; // >= 750px
+      if (shortestSide >= 500 && shortestSide < 750) return 4;
+      return 6; // >= 750px
+    }
+
+    // Function to calculate scale factor to fit within 80vh/80vw
+    function calculateResponsiveScale(gridHeight, gridWidth) {
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Calculate available space (80% of viewport)
+      const availableWidth = viewportWidth * 0.8;
+      const availableHeight = viewportHeight * 0.8;
+      
+      // Calculate scale factors for both dimensions (like object-fit: contain)
+      const scaleX = availableWidth / gridWidth;
+      const scaleY = availableHeight / gridHeight;
+      
+      // Use the smaller scale factor to ensure the entire grid fits
+      const scaleFactor = Math.min(scaleX, scaleY, 1); // Never scale up
+      
+      return Math.max(scaleFactor, 0.1); // Minimum scale of 10%
     }
   
     // Function to update visual properties without resetting grid state
@@ -47,13 +68,19 @@ document.addEventListener("DOMContentLoaded", () => {
       // Calculate dynamic values
       const borderRadius = calculateBorderRadius(gridHeight, gridWidth);
       const gap = calculateGap(gridHeight, gridWidth);
+      const scaleFactor = calculateResponsiveScale(gridHeight, gridWidth);
 
       // Update the existing grid container
       const existingGrid = bentoGridContainer.querySelector('.bento-grid');
       if (existingGrid) {
+        // Set the actual dimensions (for export)
         existingGrid.style.width = `${gridWidth}px`;
         existingGrid.style.height = `${gridHeight}px`;
         existingGrid.style.gap = `${gap}px`;
+
+        // Apply responsive scaling
+        existingGrid.style.transform = `scale(${scaleFactor})`;
+        existingGrid.style.transformOrigin = 'center center';
 
         // Update border radius and stroke for all boxes
         const boxes = existingGrid.querySelectorAll('.bento-box');
@@ -122,6 +149,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to create or update the grid
     function updateGrid() {
+      console.log("updateGrid called"); // Debug log
+      
       const gridHeight = parseInt(heightInput.value);
       const gridWidth = parseInt(widthInput.value);
       const numRows = parseInt(rowsInput.value);
@@ -142,19 +171,25 @@ document.addEventListener("DOMContentLoaded", () => {
       // Calculate dynamic values
       const borderRadius = calculateBorderRadius(gridHeight, gridWidth);
       const gap = calculateGap(gridHeight, gridWidth);
+      const scaleFactor = calculateResponsiveScale(gridHeight, gridWidth);
 
-      // Clear previous grid and selections
+      // Clear previous grid, selections, and safe area overlays
       bentoGridContainer.innerHTML = "";
       selectedBoxes = [];
       mergedAreas = [];
 
       const grid = document.createElement("div");
       grid.classList.add("bento-grid");
+      // Set the actual dimensions (for export)
       grid.style.width = `${gridWidth}px`;
       grid.style.height = `${gridHeight}px`;
       grid.style.gridTemplateRows = `repeat(${numRows}, 1fr)`;
       grid.style.gridTemplateColumns = `repeat(${numCols}, 1fr)`;
       grid.style.gap = `${gap}px`;
+
+      // Apply responsive scaling
+      grid.style.transform = `scale(${scaleFactor})`;
+      grid.style.transformOrigin = 'center center';
 
       // Create a 2D array to represent the grid state
       // Each cell will store a reference to its DOM element and its merged state
@@ -426,12 +461,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   
     function resetGrid() {
+      console.log("Reset button clicked"); // Debug log
+      
+      // Reset input values to defaults
+      heightInput.value = 512;
+      widthInput.value = 1024;
+      rowsInput.value = 3;
+      columnsInput.value = 2;
+      removeGapCheckbox.checked = false;
+      addStrokeCheckbox.checked = false;
+      addSafeAreaCheckbox.checked = false;
+      
       // Clear all selections and merged areas
       selectedBoxes = [];
       mergedAreas = [];
       
-      // Regenerate the grid with current settings
+      // Regenerate the grid with default settings
       updateGrid();
+      
+      console.log("Grid reset complete"); // Debug log
     }
 
     function copySvg() {
@@ -577,6 +625,13 @@ document.addEventListener("DOMContentLoaded", () => {
     addSafeAreaCheckbox.addEventListener("change", updateVisualProperties);
     copySvgBtn.addEventListener("click", copySvg);
     resetGridBtn.addEventListener("click", resetGrid);
+    
+    console.log("Event listeners attached"); // Debug log
+    
+    // Add window resize listener for responsive scaling
+    window.addEventListener('resize', () => {
+      updateVisualProperties();
+    });
   
     // Initial grid generation
     updateGrid();
