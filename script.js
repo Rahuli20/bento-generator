@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!existingGrid) return;
 
       const boxes = existingGrid.querySelectorAll('.bento-box');
-      const safeAreaInset = 20; // Fixed 80px inset
+      const safeAreaInset = 10; // Fixed 80px inset
 
       boxes.forEach(box => {
         const rect = box.getBoundingClientRect();
@@ -564,7 +564,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (addSafeAreaCheckbox.checked) {
         svgContent += `<g id="safe-area-overlay">`;
         
-        const safeAreaInset = 20; // Fixed 80px inset
+        const safeAreaInset = 10; // Fixed 80px inset
         
         // Add safe areas for merged boxes
         for (const area of mergedAreas) {
