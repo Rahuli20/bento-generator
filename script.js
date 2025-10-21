@@ -7,17 +7,67 @@ document.addEventListener("DOMContentLoaded", () => {
     const downloadSvgBtn = document.getElementById("downloadSvg");
     const resetGridBtn = document.getElementById("resetGrid");
   
-    const GAP = 1; // 1px gap between boxes
+    const removeGapCheckbox = document.getElementById("removeGap");
     let selectedBoxes = []; // Stores the [row, col] of selected boxes
     let mergedAreas = []; // Stores merged areas as { startRow, startCol, endRow, endCol }
+
+    // Function to calculate border radius based on shortest side of grid
+    function calculateBorderRadius(gridHeight, gridWidth) {
+      const shortestSide = Math.min(gridHeight, gridWidth);
+      
+      if (shortestSide < 250) return 8;
+      if (shortestSide >= 250 && shortestSide < 500) return 16;
+      if (shortestSide >= 500 && shortestSide < 750) return 24;
+      return 32; // >= 750px
+    }
+
+    // Function to calculate gap based on shortest side of grid
+    function calculateGap(gridHeight, gridWidth) {
+      if (removeGapCheckbox.checked) return 0;
+      
+      const shortestSide = Math.min(gridHeight, gridWidth);
+      
+      if (shortestSide < 250) return 1;
+      if (shortestSide >= 250 && shortestSide < 500) return 2;
+      if (shortestSide >= 500 && shortestSide < 750) return 4;
+      return 8; // >= 750px
+    }
   
+    // Function to update visual properties without resetting grid state
+    function updateVisualProperties() {
+      const gridHeight = parseInt(heightInput.value);
+      const gridWidth = parseInt(widthInput.value);
+      
+      if (isNaN(gridHeight) || isNaN(gridWidth)) {
+        return;
+      }
+
+      // Calculate dynamic values
+      const borderRadius = calculateBorderRadius(gridHeight, gridWidth);
+      const gap = calculateGap(gridHeight, gridWidth);
+
+      // Update the existing grid container
+      const existingGrid = bentoGridContainer.querySelector('.bento-grid');
+      if (existingGrid) {
+        existingGrid.style.width = `${gridWidth}px`;
+        existingGrid.style.height = `${gridHeight}px`;
+        existingGrid.style.gap = `${gap}px`;
+
+        // Update border radius for all boxes
+        const boxes = existingGrid.querySelectorAll('.bento-box');
+        boxes.forEach(box => {
+          box.style.borderRadius = `${borderRadius}px`;
+        });
+      }
+    }
+
     // Function to create or update the grid
     function updateGrid() {
       const gridHeight = parseInt(heightInput.value);
       const gridWidth = parseInt(widthInput.value);
       const numRows = parseInt(rowsInput.value);
       const numCols = parseInt(columnsInput.value);
-  
+
       if (
         isNaN(gridHeight) ||
         isNaN(gridWidth) ||
@@ -29,19 +79,24 @@ document.addEventListener("DOMContentLoaded", () => {
         bentoGridContainer.innerHTML = "<p>Please enter valid numbers.</p>";
         return;
       }
-  
+
+      // Calculate dynamic values
+      const borderRadius = calculateBorderRadius(gridHeight, gridWidth);
+      const gap = calculateGap(gridHeight, gridWidth);
+
       // Clear previous grid and selections
       bentoGridContainer.innerHTML = "";
       selectedBoxes = [];
       mergedAreas = [];
-  
+
       const grid = document.createElement("div");
       grid.classList.add("bento-grid");
       grid.style.width = `${gridWidth}px`;
       grid.style.height = `${gridHeight}px`;
       grid.style.gridTemplateRows = `repeat(${numRows}, 1fr)`;
       grid.style.gridTemplateColumns = `repeat(${numCols}, 1fr)`;
-  
+      grid.style.gap = `${gap}px`;
+
       // Create a 2D array to represent the grid state
       // Each cell will store a reference to its DOM element and its merged state
       let gridState = Array(numRows)
@@ -55,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
               id: null, // ID of the merged box it belongs to
             })),
         );
-  
+
       for (let r = 0; r < numRows; r++) {
         for (let c = 0; c < numCols; c++) {
           const box = document.createElement("div");
@@ -64,9 +119,10 @@ document.addEventListener("DOMContentLoaded", () => {
           box.dataset.col = c;
           box.style.gridRow = `${r + 1}`;
           box.style.gridColumn = `${c + 1}`;
+          box.style.borderRadius = `${borderRadius}px`;
           grid.appendChild(box);
           gridState[r][c].element = box;
-  
+
           box.addEventListener("click", () => handleBoxClick(r, c, gridState));
         }
       }
@@ -282,7 +338,7 @@ document.addEventListener("DOMContentLoaded", () => {
               }`;
               mergedBox.style.backgroundColor = ""; // Use CSS variable instead
               mergedBox.style.display = "flex"; // Ensure it's visible
-              mergedBox.classList.add("selected"); // Keep it selected for visual feedback after merge
+              // Remove selected class - no visual feedback after merge
             } else {
               // Other boxes within the merged area should be hidden or visually integrated
               gridState[r][c].element.style.display = "none"; // Hide other parts of the merged block
@@ -313,13 +369,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const gridWidth = parseInt(widthInput.value);
       const numRows = parseInt(rowsInput.value);
       const numCols = parseInt(columnsInput.value);
-      const boxRadius = 30; // From CSS .bento-box border-radius
-  
+      const borderRadius = calculateBorderRadius(gridHeight, gridWidth);
+      const gap = calculateGap(gridHeight, gridWidth);
+
       let svgContent = `<svg width="${gridWidth}" height="${gridHeight}" viewBox="0 0 ${gridWidth} ${gridHeight}" fill="none" xmlns="http://www.w3.org/2000/svg">`;
-  
+
       // Calculate base box dimensions (before gaps are applied by SVG positioning)
-      const baseBoxWidth = (gridWidth - (numCols - 1) * GAP) / numCols;
-      const baseBoxHeight = (gridHeight - (numRows - 1) * GAP) / numRows;
+      const baseBoxWidth = (gridWidth - (numCols - 1) * gap) / numCols;
+      const baseBoxHeight = (gridHeight - (numRows - 1) * gap) / numRows;
   
       // We need to keep track of which cells are part of a merged box
       // to avoid drawing individual boxes that are now covered by a merged one.
@@ -334,12 +391,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const mergedBoxHeight =
           area.endRow - area.startRow + 1;
   
-        const x = area.startCol * (baseBoxWidth + GAP);
-        const y = area.startRow * (baseBoxHeight + GAP);
-        const width = mergedBoxWidth * baseBoxWidth + (mergedBoxWidth - 1) * GAP;
-        const height = mergedBoxHeight * baseBoxHeight + (mergedBoxHeight - 1) * GAP;
-  
-        svgContent += `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="${boxRadius}" ry="${boxRadius}" fill="#daff06"/>`;
+        const x = area.startCol * (baseBoxWidth + gap);
+        const y = area.startRow * (baseBoxHeight + gap);
+        const width = mergedBoxWidth * baseBoxWidth + (mergedBoxWidth - 1) * gap;
+        const height = mergedBoxHeight * baseBoxHeight + (mergedBoxHeight - 1) * gap;
+
+        svgContent += `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="${borderRadius}" ry="${borderRadius}" fill="#daff06"/>`;
   
         // Mark these cells as occupied
         for (let r = area.startRow; r <= area.endRow; r++) {
@@ -353,9 +410,9 @@ document.addEventListener("DOMContentLoaded", () => {
       for (let r = 0; r < numRows; r++) {
         for (let c = 0; c < numCols; c++) {
           if (!occupiedCells[r][c]) {
-            const x = c * (baseBoxWidth + GAP);
-            const y = r * (baseBoxHeight + GAP);
-            svgContent += `<rect x="${x}" y="${y}" width="${baseBoxWidth}" height="${baseBoxHeight}" rx="${boxRadius}" ry="${boxRadius}" fill="#daff06"/>`;
+            const x = c * (baseBoxWidth + gap);
+            const y = r * (baseBoxHeight + gap);
+            svgContent += `<rect x="${x}" y="${y}" width="${baseBoxWidth}" height="${baseBoxHeight}" rx="${borderRadius}" ry="${borderRadius}" fill="#daff06"/>`;
           }
         }
       }
@@ -374,10 +431,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   
     // Event Listeners for input changes
-    heightInput.addEventListener("change", updateGrid);
-    widthInput.addEventListener("change", updateGrid);
-    rowsInput.addEventListener("change", updateGrid);
-    columnsInput.addEventListener("change", updateGrid);
+    heightInput.addEventListener("change", updateVisualProperties);
+    widthInput.addEventListener("change", updateVisualProperties);
+    rowsInput.addEventListener("change", updateGrid); // Rows/columns require full grid reset
+    columnsInput.addEventListener("change", updateGrid); // Rows/columns require full grid reset
+    removeGapCheckbox.addEventListener("change", updateVisualProperties);
     downloadSvgBtn.addEventListener("click", downloadSvg);
     resetGridBtn.addEventListener("click", resetGrid);
   

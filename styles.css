@@ -68,7 +68,7 @@ body {
     background-color: var(--btn-primary);
     color: var(--text-white);
     border: none;
-    border-radius: 4px;
+    border-radius: 50vw;
     cursor: pointer;
     font-size: 16px;
     transition: background-color 0.2s ease-in-out;
@@ -82,8 +82,6 @@ body {
     border: 1px solid var(--border-medium);
     background-color: var(--bg-white);
     box-shadow: 0 4px 8px var(--shadow-medium);
-    border-radius: 22px; /* Outer container radius */
-    overflow: hidden; /* Ensures inner boxes don't overflow rounded corners */
   }
   
   .bento-grid {
@@ -93,21 +91,13 @@ body {
   
   .bento-box {
     background-color: var(--box-default);
-    border-radius: 30px;
     cursor: pointer;
     transition: all 0.1s ease-in-out;
     box-sizing: border-box; /* Include padding and border in the element's total width and height */
-    margin: 1px; /* Half of the 2px gap, will be handled by negative margins on grid */
     display: flex; /* For potential future content alignment */
     justify-content: center;
     align-items: center;
     position: relative; /* For selection overlay */
-  }
-  
-  /* Compensate for margin to create exact 2px gap */
-  .bento-grid {
-    padding: 1px;
-    gap: 1px;
   }
   
   .bento-box.selected {
