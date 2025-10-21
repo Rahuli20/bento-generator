@@ -31,8 +31,8 @@ document.addEventListener("DOMContentLoaded", () => {
       
       if (shortestSide < 250) return 1;
       if (shortestSide >= 250 && shortestSide < 500) return 2;
-      if (shortestSide >= 500 && shortestSide < 750) return 3;
-      return 4; // >= 750px
+      if (shortestSide >= 500 && shortestSide < 750) return 2;
+      return 2; // >= 750px
     }
   
     // Function to update visual properties without resetting grid state
@@ -520,7 +520,7 @@ document.addEventListener("DOMContentLoaded", () => {
           
           // Only add safe area if it's large enough
           if (safeWidth > 0 && safeHeight > 0) {
-            svgContent += `<rect x="${safeX}" y="${safeY}" width="${safeWidth}" height="${safeHeight}" fill="none" stroke="black" stroke-width="1"/>`;
+            svgContent += `<rect x="${safeX}" y="${safeY}" width="${safeWidth}" height="${safeHeight}" fill="none" stroke="#ff0000" stroke-width="1"/>`;
           }
         }
         
@@ -539,7 +539,7 @@ document.addEventListener("DOMContentLoaded", () => {
               
               // Only add safe area if it's large enough
               if (safeWidth > 0 && safeHeight > 0) {
-                svgContent += `<rect x="${safeX}" y="${safeY}" width="${safeWidth}" height="${safeHeight}" fill="none" stroke="black" stroke-width="1"/>`;
+                svgContent += `<rect x="${safeX}" y="${safeY}" width="${safeWidth}" height="${safeHeight}" fill="none" stroke="#ff0000" stroke-width="1"/>`;
               }
             }
           }
