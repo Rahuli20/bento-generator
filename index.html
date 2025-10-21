@@ -7,45 +7,68 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="controls">
-      <div class="input-group">
-        <label for="height">Height</label>
-        <input type="number" id="height" value="512" step="10" />
+    <div class="controls" style="padding-bottom: 2rem;">
+
+        <div class="flex-group">
+
+          <div class="input-group">
+            <label for="height">Height</label>
+            <input type="number" id="height" value="390" step="10" />
+          </div>
+
+          <div class="input-group">
+            <label for="width">Width</label>
+            <input type="number" id="width" value="960" step="10" />
+          </div>
+
+        </div>
+
+      <div class="flex-group">
+
+        <div class="input-group">
+          <label for="rows">Rows</label>
+          <input type="number" class="short-input" id="rows" value="2" />
+        </div>
+
+        <div class="input-group">
+          <label for="columns">Columns</label>
+          <input type="number" class="short-input" id="columns" value="3" />
+        </div>
+
       </div>
-      <div class="input-group">
-        <label for="width">Width</label>
-        <input type="number" id="width" value="1024" step="10" />
-      </div>
-      <div class="input-group">
-        <label for="rows">Rows</label>
-        <input type="number" id="rows" value="3" />
-      </div>
-      <div class="input-group">
-        <label for="columns">Columns</label>
-        <input type="number" id="columns" value="2" />
-      </div>
-      <div class="input-group">
-        <label for="removeGap">Remove Gap</label>
-        <input type="checkbox" id="removeGap" />
-      </div>
-      <div class="input-group">
-        <label for="addStroke">Add Stroke</label>
-        <input type="checkbox" id="addStroke" />
-      </div>
-      <div class="input-group">
-        <label for="addSafeArea">Add Safe Area</label>
-        <input type="checkbox" id="addSafeArea" />
-      </div>
-     
+
     
     </div>
 
     <div id="bento-grid-container"></div>
 
-    <div class="input-group">
-      <button id="copySvg">Copy SVG</button>
-      <button id="resetGrid">Reset Grid</button>
-  </div>
+    <div class="controls" style="padding-top: 2rem;">
+
+      <div class="flex-group" >
+        
+        <div class="input-group checkbox">
+          <input type="checkbox" id="removeGap" />
+          <label for="removeGap">No Gap</label>
+        </div>
+  
+        <div class="input-group checkbox">
+          <input type="checkbox" id="addStroke" />
+          <label for="addStroke">Border</label>
+        </div>
+  
+        <div class="input-group checkbox">
+          <input type="checkbox" id="addSafeArea" />
+          <label for="addSafeArea">Safe Area</label>
+        </div>
+      
+      </div>
+
+      <div class="flex-group">
+        <button id="copySvg">Copy Grid</button>
+        <button class="alt" id="resetGrid">Reset Grid</button>
+      </div>
+  
+    </div>
 
     <script src="script.js"></script>
   </body>

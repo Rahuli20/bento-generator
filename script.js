@@ -464,10 +464,10 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("Reset button clicked"); // Debug log
       
       // Reset input values to defaults
-      heightInput.value = 512;
-      widthInput.value = 1024;
-      rowsInput.value = 3;
-      columnsInput.value = 2;
+      heightInput.value = 390;
+      widthInput.value = 960;
+      rowsInput.value = 2;
+      columnsInput.value = 3;
       removeGapCheckbox.checked = false;
       addStrokeCheckbox.checked = false;
       addSafeAreaCheckbox.checked = false;
