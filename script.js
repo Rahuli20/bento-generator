@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const numRows = parseInt(rowsInput.value);
       const numCols = parseInt(columnsInput.value);
       const gap = calculateGap(gridHeight, gridWidth);
-      const safeAreaInset = 10; // Fixed 10px inset
+      const safeAreaInset = 15; // Fixed 10px inset
 
       // Calculate base box dimensions
       const baseBoxWidth = (gridWidth - (numCols - 1) * gap) / numCols;
@@ -643,7 +643,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (addSafeAreaCheckbox.checked) {
         svgContent += `<g id="safe-area-overlay">`;
         
-        const safeAreaInset = 10; // Fixed 80px inset
+        const safeAreaInset = 15; // Fixed 80px inset
         
         // Add safe areas for merged boxes
         for (const area of mergedAreas) {
