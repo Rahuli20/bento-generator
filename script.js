@@ -111,38 +111,94 @@ document.addEventListener("DOMContentLoaded", () => {
       const existingGrid = bentoGridContainer.querySelector('.bento-grid');
       if (!existingGrid) return;
 
+      const gridHeight = parseInt(heightInput.value);
+      const gridWidth = parseInt(widthInput.value);
+      const numRows = parseInt(rowsInput.value);
+      const numCols = parseInt(columnsInput.value);
+      const gap = calculateGap(gridHeight, gridWidth);
+      const safeAreaInset = 10; // Fixed 10px inset
+
+      // Calculate base box dimensions
+      const baseBoxWidth = (gridWidth - (numCols - 1) * gap) / numCols;
+      const baseBoxHeight = (gridHeight - (numRows - 1) * gap) / numRows;
+
+      // Create safe area overlays for each visible box
       const boxes = existingGrid.querySelectorAll('.bento-box');
-      const safeAreaInset = 10; // Fixed 80px inset
-
       boxes.forEach(box => {
-        const rect = box.getBoundingClientRect();
-        const gridRect = existingGrid.getBoundingClientRect();
+        const row = parseInt(box.dataset.row);
+        const col = parseInt(box.dataset.col);
         
-        // Calculate position relative to the grid container
-        const x = rect.left - gridRect.left;
-        const y = rect.top - gridRect.top;
-        const width = rect.width;
-        const height = rect.height;
+        // Check if this box is part of a merged area
+        let isPartOfMergedArea = false;
+        let mergedArea = null;
+        
+        for (const area of mergedAreas) {
+          if (row >= area.startRow && row <= area.endRow && 
+              col >= area.startCol && col <= area.endCol) {
+            isPartOfMergedArea = true;
+            mergedArea = area;
+            break;
+          }
+        }
 
-        // Calculate safe area dimensions with fixed inset
-        const safeWidth = Math.max(0, width - (safeAreaInset * 2));
-        const safeHeight = Math.max(0, height - (safeAreaInset * 2));
-        
-        // Only show safe area if it's large enough
-        if (safeWidth > 0 && safeHeight > 0) {
-          const safeAreaOverlay = document.createElement('div');
-          safeAreaOverlay.classList.add('safe-area-overlay');
-          safeAreaOverlay.style.position = 'absolute';
-          safeAreaOverlay.style.left = `${x + safeAreaInset}px`;
-          safeAreaOverlay.style.top = `${y + safeAreaInset}px`;
-          safeAreaOverlay.style.width = `${safeWidth}px`;
-          safeAreaOverlay.style.height = `${safeHeight}px`;
-          safeAreaOverlay.style.border = '1px solid black';
-          safeAreaOverlay.style.backgroundColor = 'transparent';
-          safeAreaOverlay.style.pointerEvents = 'none';
-          safeAreaOverlay.style.zIndex = '10';
+        // Only create safe area for the top-left box of merged areas or individual boxes
+        if (isPartOfMergedArea) {
+          if (row !== mergedArea.startRow || col !== mergedArea.startCol) {
+            return; // Skip non-top-left boxes of merged areas
+          }
           
-          bentoGridContainer.appendChild(safeAreaOverlay);
+          // Calculate merged box dimensions
+          const mergedBoxWidth = mergedArea.endCol - mergedArea.startCol + 1;
+          const mergedBoxHeight = mergedArea.endRow - mergedArea.startRow + 1;
+          
+          const x = mergedArea.startCol * (baseBoxWidth + gap);
+          const y = mergedArea.startRow * (baseBoxHeight + gap);
+          const width = mergedBoxWidth * baseBoxWidth + (mergedBoxWidth - 1) * gap;
+          const height = mergedBoxHeight * baseBoxHeight + (mergedBoxHeight - 1) * gap;
+          
+          // Calculate safe area dimensions
+          const safeWidth = Math.max(0, width - (safeAreaInset * 2));
+          const safeHeight = Math.max(0, height - (safeAreaInset * 2));
+          
+          if (safeWidth > 0 && safeHeight > 0) {
+            const safeAreaOverlay = document.createElement('div');
+            safeAreaOverlay.classList.add('safe-area-overlay');
+            safeAreaOverlay.style.position = 'absolute';
+            safeAreaOverlay.style.left = `${x + safeAreaInset}px`;
+            safeAreaOverlay.style.top = `${y + safeAreaInset}px`;
+            safeAreaOverlay.style.width = `${safeWidth}px`;
+            safeAreaOverlay.style.height = `${safeHeight}px`;
+            safeAreaOverlay.style.border = '1px solid black';
+            safeAreaOverlay.style.backgroundColor = 'transparent';
+            safeAreaOverlay.style.pointerEvents = 'none';
+            safeAreaOverlay.style.zIndex = '10';
+            
+            existingGrid.appendChild(safeAreaOverlay);
+          }
+        } else {
+          // Individual box
+          const x = col * (baseBoxWidth + gap);
+          const y = row * (baseBoxHeight + gap);
+          
+          // Calculate safe area dimensions
+          const safeWidth = Math.max(0, baseBoxWidth - (safeAreaInset * 2));
+          const safeHeight = Math.max(0, baseBoxHeight - (safeAreaInset * 2));
+          
+          if (safeWidth > 0 && safeHeight > 0) {
+            const safeAreaOverlay = document.createElement('div');
+            safeAreaOverlay.classList.add('safe-area-overlay');
+            safeAreaOverlay.style.position = 'absolute';
+            safeAreaOverlay.style.left = `${x + safeAreaInset}px`;
+            safeAreaOverlay.style.top = `${y + safeAreaInset}px`;
+            safeAreaOverlay.style.width = `${safeWidth}px`;
+            safeAreaOverlay.style.height = `${safeHeight}px`;
+            safeAreaOverlay.style.border = '1px solid black';
+            safeAreaOverlay.style.backgroundColor = 'transparent';
+            safeAreaOverlay.style.pointerEvents = 'none';
+            safeAreaOverlay.style.zIndex = '10';
+            
+            existingGrid.appendChild(safeAreaOverlay);
+          }
         }
       });
     }
