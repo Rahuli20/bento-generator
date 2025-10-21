@@ -4,10 +4,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const rowsInput = document.getElementById("rows");
     const columnsInput = document.getElementById("columns");
     const bentoGridContainer = document.getElementById("bento-grid-container");
-    const downloadSvgBtn = document.getElementById("downloadSvg");
+    const copySvgBtn = document.getElementById("copySvg");
     const resetGridBtn = document.getElementById("resetGrid");
   
     const removeGapCheckbox = document.getElementById("removeGap");
+    const addStrokeCheckbox = document.getElementById("addStroke");
     let selectedBoxes = []; // Stores the [row, col] of selected boxes
     let mergedAreas = []; // Stores merged areas as { startRow, startCol, endRow, endCol }
 
@@ -53,10 +54,15 @@ document.addEventListener("DOMContentLoaded", () => {
         existingGrid.style.height = `${gridHeight}px`;
         existingGrid.style.gap = `${gap}px`;
 
-        // Update border radius for all boxes
+        // Update border radius and stroke for all boxes
         const boxes = existingGrid.querySelectorAll('.bento-box');
         boxes.forEach(box => {
           box.style.borderRadius = `${borderRadius}px`;
+          if (addStrokeCheckbox.checked) {
+            box.style.border = '1px solid black';
+          } else {
+            box.style.border = 'none';
+          }
         });
       }
     }
@@ -120,6 +126,11 @@ document.addEventListener("DOMContentLoaded", () => {
           box.style.gridRow = `${r + 1}`;
           box.style.gridColumn = `${c + 1}`;
           box.style.borderRadius = `${borderRadius}px`;
+          if (addStrokeCheckbox.checked) {
+            box.style.border = '1px solid black';
+          } else {
+            box.style.border = 'none';
+          }
           grid.appendChild(box);
           gridState[r][c].element = box;
 
@@ -364,15 +375,24 @@ document.addEventListener("DOMContentLoaded", () => {
       updateGrid();
     }
 
-    function downloadSvg() {
+    function copySvg() {
       const gridHeight = parseInt(heightInput.value);
       const gridWidth = parseInt(widthInput.value);
       const numRows = parseInt(rowsInput.value);
       const numCols = parseInt(columnsInput.value);
       const borderRadius = calculateBorderRadius(gridHeight, gridWidth);
       const gap = calculateGap(gridHeight, gridWidth);
+      const strokeColor = addStrokeCheckbox.checked ? 'black' : 'none';
+      const strokeWidth = addStrokeCheckbox.checked ? '1' : '0';
+      
+      // Add padding for stroke to prevent clipping
+      const strokePadding = addStrokeCheckbox.checked ? 2 : 0; // 1px stroke + 1px padding
+      const svgWidth = gridWidth + strokePadding * 2;
+      const svgHeight = gridHeight + strokePadding * 2;
+      const offsetX = strokePadding;
+      const offsetY = strokePadding;
 
-      let svgContent = `<svg width="${gridWidth}" height="${gridHeight}" viewBox="0 0 ${gridWidth} ${gridHeight}" fill="none" xmlns="http://www.w3.org/2000/svg">`;
+      let svgContent = `<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" fill="none" xmlns="http://www.w3.org/2000/svg">`;
 
       // Calculate base box dimensions (before gaps are applied by SVG positioning)
       const baseBoxWidth = (gridWidth - (numCols - 1) * gap) / numCols;
@@ -391,12 +411,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const mergedBoxHeight =
           area.endRow - area.startRow + 1;
   
-        const x = area.startCol * (baseBoxWidth + gap);
-        const y = area.startRow * (baseBoxHeight + gap);
+        const x = area.startCol * (baseBoxWidth + gap) + offsetX;
+        const y = area.startRow * (baseBoxHeight + gap) + offsetY;
         const width = mergedBoxWidth * baseBoxWidth + (mergedBoxWidth - 1) * gap;
         const height = mergedBoxHeight * baseBoxHeight + (mergedBoxHeight - 1) * gap;
 
-        svgContent += `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="${borderRadius}" ry="${borderRadius}" fill="#daff06"/>`;
+        svgContent += `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="${borderRadius}" ry="${borderRadius}" fill="#daff06" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>`;
   
         // Mark these cells as occupied
         for (let r = area.startRow; r <= area.endRow; r++) {
@@ -410,24 +430,30 @@ document.addEventListener("DOMContentLoaded", () => {
       for (let r = 0; r < numRows; r++) {
         for (let c = 0; c < numCols; c++) {
           if (!occupiedCells[r][c]) {
-            const x = c * (baseBoxWidth + gap);
-            const y = r * (baseBoxHeight + gap);
-            svgContent += `<rect x="${x}" y="${y}" width="${baseBoxWidth}" height="${baseBoxHeight}" rx="${borderRadius}" ry="${borderRadius}" fill="#daff06"/>`;
+            const x = c * (baseBoxWidth + gap) + offsetX;
+            const y = r * (baseBoxHeight + gap) + offsetY;
+            svgContent += `<rect x="${x}" y="${y}" width="${baseBoxWidth}" height="${baseBoxHeight}" rx="${borderRadius}" ry="${borderRadius}" fill="#daff06" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>`;
           }
         }
       }
   
       svgContent += `</svg>`;
   
-      const blob = new Blob([svgContent], { type: "image/svg+xml" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "bento-grid.svg";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // Copy to clipboard
+      navigator.clipboard.writeText(svgContent).then(() => {
+        // Provide visual feedback
+        const originalText = copySvgBtn.textContent;
+        copySvgBtn.textContent = "Copied!";
+        copySvgBtn.style.backgroundColor = "#28a745";
+        
+        setTimeout(() => {
+          copySvgBtn.textContent = originalText;
+          copySvgBtn.style.backgroundColor = "";
+        }, 1500);
+      }).catch(err => {
+        console.error('Failed to copy SVG: ', err);
+        alert('Failed to copy SVG to clipboard');
+      });
     }
   
     // Event Listeners for input changes
@@ -436,7 +462,8 @@ document.addEventListener("DOMContentLoaded", () => {
     rowsInput.addEventListener("change", updateGrid); // Rows/columns require full grid reset
     columnsInput.addEventListener("change", updateGrid); // Rows/columns require full grid reset
     removeGapCheckbox.addEventListener("change", updateVisualProperties);
-    downloadSvgBtn.addEventListener("click", downloadSvg);
+    addStrokeCheckbox.addEventListener("change", updateVisualProperties);
+    copySvgBtn.addEventListener("click", copySvg);
     resetGridBtn.addEventListener("click", resetGrid);
   
     // Initial grid generation
