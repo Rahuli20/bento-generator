@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const shortestSide = Math.min(gridHeight, gridWidth);
       
       if (shortestSide < 250) return 8;
-      if (shortestSide >= 250 && shortestSide < 500) return 14;
+      if (shortestSide >= 250 && shortestSide < 500) return 16;
       if (shortestSide >= 500 && shortestSide < 750) return 20;
       return 20; // >= 750px
     }
