@@ -19,10 +19,10 @@ document.addEventListener("DOMContentLoaded", () => {
     function calculateBorderRadius(gridHeight, gridWidth) {
       const shortestSide = Math.min(gridHeight, gridWidth);
       
-      if (shortestSide < 250) return 4;
-      if (shortestSide >= 250 && shortestSide < 500) return 8;
-      if (shortestSide >= 500 && shortestSide < 750) return 16;
-      return 16; // >= 750px
+      if (shortestSide < 250) return 8;
+      if (shortestSide >= 250 && shortestSide < 500) return 14;
+      if (shortestSide >= 500 && shortestSide < 750) return 20;
+      return 26; // >= 750px
     }
 
     // Function to calculate gap based on shortest side of grid
